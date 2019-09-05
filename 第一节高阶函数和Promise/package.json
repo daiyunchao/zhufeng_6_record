@@ -1,0 +1,9 @@
+{
+  "name": "04珠峰6期笔记",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "promises-aplus-tests": "^2.1.2"
+  }
+}
