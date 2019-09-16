@@ -1,23 +1,23 @@
-function Animal() {
-  this.name = "zhangsan"
-  this.age = 18;
+@type('哺乳类')
+@name('张三')
+class Animal {
+
 }
 
-Animal.prototype.say = function () {
-  console.log("in say");
+let dog=new Animal();
+console.log(dog);
+
+
+function type(typeName) {
+  console.log(typeName);
+  return function (Constructor) {
+    console.log(Constructor);
+  }
 }
 
-function mockNew(parent) {
-  let obj = {};
-  Animal.call(obj);
-  obj.__proto__ = parent.prototype;
-  return obj;
+function name(name) {
+  console.log(name);
+  return function (Constructor) {
+    console.log(Constructor);
+  }
 }
-
-// let dog=new Animal();
-let dog = mockNew(Animal);
-console.log(dog.name);
-console.log(dog.age);
-dog.say();
-
-

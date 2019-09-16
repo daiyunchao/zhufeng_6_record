@@ -185,4 +185,129 @@ class Dog extends Animal{
 
 ```
 
+#### 类的装饰器
+```javascript
 
+//可以修饰类 也可以修饰类的属性
+@type1
+@type2
+class Animal{
+
+}
+
+//1.type1 和 type2 都是函数
+//function type1(Constrtuctor){}
+//2.它的意思是 声明了Animal类,并且调用 type函数
+//3.调用顺序是 就近调用 先调用的是type2再调用type1
+```
+#### 装饰器的小例子:
+```javascript
+function type(typeName) {
+  console.log(typeName);
+  return function (Constructor) {
+    Constructor.type=typeName;
+    console.log("in type inter");
+  }
+}
+
+function name(n) {
+  console.log(n);
+  return function (Constructor) {
+    
+    Constructor.name=n;
+    console.log("in name inter");
+  }
+}
+@type('哺乳类')
+@name('张三')
+class Animal {
+
+}
+
+let dog=new Animal();
+console.log(dog);
+console.log(Animal.name);
+
+//执行顺序是 type函数 name 函数 再执行 name的 inter 和 type的inter
+```
+
+#### 使用装饰器装饰类的小例子:
+```javascript
+
+  //混合对象的属性和类
+  let obj = {
+    name: "zhangsan",
+    age: 18
+  }
+
+  @mixin(obj)
+  class Zhangsan {
+
+  }
+
+  function mixin(obj) {
+    return function (Constrcutor) {
+      Object.assign(Constrcutor.prototype, obj);
+    }
+  }
+
+  console.log(new Zhangsan().name);
+
+```
+
+#### 使用装饰器装饰类的属性
+```javascript
+class Circle{
+  @readonly type="circle"
+}
+
+//ClassPrototype: CirCle.prototype
+//key: 要修饰的key
+//descriptor: key的描述信息 configurable enumerable writable initializer
+function readonly(ClassPrototype,key,descriptor){
+  console.log(descriptor);
+  //将该属性的writable设置为false,就不能被更改了
+  descriptor.writable=false;
+}
+let circle=new Circle();
+//尝试修改type的值
+circle.type="1122"
+//打印出来的结果依然是circle
+console.log(circle.type);
+
+```
+
+#### 使用装饰器装饰类的方法
+```javascript
+  class Circle {
+    @readonly type = "circle"
+    @before getName() {
+      console.log("getName");
+    }
+  }
+
+  //ClassPrototype: CirCle.prototype
+  //key: 要修饰的key
+  //descriptor: key的描述信息 configurable enumerable writable initializer
+  function readonly(ClassPrototype, key, descriptor) {
+    console.log(descriptor);
+    //将该属性的writable设置为false,就不能被更改了
+    descriptor.writable = false;
+  }
+
+  function before(ClassPrototype, key, descriptor) {
+    //在装饰函数中descriptor.value就是函数本身,就像例子中的"getName"
+    let oldMethod = descriptor.value;
+    descriptor.value = function () {
+      console.log("in before method");
+      oldMethod();
+
+    }
+  }
+  let circle = new Circle();
+  //尝试修改type的值
+  circle.type = "1122"
+  //打印出来的结果依然是circle
+  console.log(circle.type);
+  circle.getName();
+```
