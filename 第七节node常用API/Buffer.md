@@ -74,3 +74,77 @@ todo: 自己实现一个base64的转化功能
 
 使用数组
 `Buffer.from([1,2,3,4])`
+
+
+
+
+
+#### 自己实现Base64加密解密
+
+```javascript
+
+//有Bug...
+const Base64CodeLib = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".split('');
+
+//加密的方法:
+function base64EnCode(str) {
+  let buff = Buffer.from(str);
+  let bStr = "";
+  console.log(buff);
+
+  buff.forEach(item => {
+    let newB = (item).toString(2);
+    while (newB.length < 8) {
+      newB = "0" + newB;
+    }
+    bStr += newB;
+  })
+
+  let baseStr = "";
+  let baseStrArr = [];
+  let hasMoreLen = true;
+  let index = 0;
+  while (hasMoreLen) {
+    let startNumber = index * 6;
+    let str = bStr.substr(startNumber, 6);
+    str.length > 0 && baseStrArr.push(str);
+    index += 1;
+    if (index * 6 > bStr.length) {
+      hasMoreLen = false;
+    }
+  }
+  console.log(baseStrArr);
+
+
+  baseStrArr.forEach(item => {
+    baseStr += Base64CodeLib[parseInt("00"+item, 2)];
+  })
+  return baseStr;
+}
+
+console.log(base64EnCode('dankogai'));
+
+//使用Node自带的方法验证
+console.log(Buffer.from('dankogai').toString('base64'));
+
+
+```
+
+#### drag拖拽预览图片功能
+```javascript
+document.getElementById('drag').ondragover = function (e) {
+      e.preventDefault();
+    }
+    document.getElementById('drag').ondrop = function (e) {
+      e.preventDefault();
+      let fr = new FileReader();
+      fr.readAsDataURL(e.dataTransfer.files[0])
+      fr.onload = function (e) {
+        let base64 = e.target.result;
+        let img = new Image();
+        img.style="width:200px";
+        img.src = base64;
+        document.getElementById('drag').appendChild(img);
+      }
+    }
+```
