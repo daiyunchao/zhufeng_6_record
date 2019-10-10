@@ -1,41 +1,53 @@
-let buffer = Buffer.from(`张三李四王五
-张三李四王五
-张三李四王五
-张三李四王五
-`)
+const fs = require('fs');
+const util = require('util');
 
-Buffer.prototype.split = function (splitTag) {
-  //找到分隔符的长度:
-  let len = Buffer.from(splitTag).length;
+let open = util.promisify(fs.open);
+let read = util.promisify(fs.read);
+let write = util.promisify(fs.write);
+let close = util.promisify(fs.close);
 
-  //用于标记开始位置:
-  let offset = 0;
 
-  //用于判断是否执行循环
-  let doWhile = true;
+function littleReadFile(bufferLength, startPostion, end = 0) {
+  let rfd = null;
+  let wfd = null;
+  let buffer = Buffer.alloc(bufferLength);
+  return open('./node.txt', 'r').then(fd => {
+    rfd = fd;//030
+    return read(rfd, buffer, 0, bufferLength, startPostion)
+  }).then(data => {
 
-  let res = [];
 
-  while (doWhile) {
-    //结束位置:
-    let endPoint = this.indexOf(splitTag, offset);
-    if (endPoint < 0) {
-      doWhile = false;
-    } else {
-      res.push(this.slice(offset, endPoint));
-      //新的偏移量:
-      offset = endPoint + len;
+    close(rfd);
+    if (data.bytesRead == 0) {
+      throw new Error('fileReadEnd');
+    }
+    return open('./node2.txt', 'w')
+  }).then(fd => {
+    wfd = fd;
+    console.log(buffer, bufferLength, startPostion);
+    return write(wfd, buffer, 0, bufferLength, end)
+  }).then(() => {
+    close(wfd);
+  });
+}
+
+
+// littleReadFile(3, 3)
+
+(async () => {
+  let needLoop = true;
+  let start = 0;
+  let total = 0;
+  while (needLoop) {
+    try {
+      console.log("读取中...");
+      await littleReadFile(3, start, total);
+      start += 3;
+      total += 3;
+    } catch (error) {
+      needLoop = false;
     }
   }
-  res.push(this.slice(offset));
-  return res;
-
-}
-let arr = buffer.split('\n');
-console.log(arr.length);
-
-for (let index = 0; index < arr.length; index++) {
-  const element = arr[index];
-  console.log(element.toString());
-}
+  console.log("文件读写完成");
+})()
 
