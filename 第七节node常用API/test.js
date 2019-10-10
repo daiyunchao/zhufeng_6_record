@@ -1,43 +1,41 @@
-const Base64CodeLib = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=".split('');
+let buffer = Buffer.from(`张三李四王五
+张三李四王五
+张三李四王五
+张三李四王五
+`)
 
-//加密的方法:
-function base64EnCode(str) {
-  let buff = Buffer.from(str);
-  let bStr = "";
-  console.log(buff);
+Buffer.prototype.split = function (splitTag) {
+  //找到分隔符的长度:
+  let len = Buffer.from(splitTag).length;
 
-  buff.forEach(item => {
-    let newB = (item).toString(2);
-    while (newB.length < 8) {
-      newB = "0" + newB;
-    }
-    bStr += newB;
-  })
+  //用于标记开始位置:
+  let offset = 0;
 
-  let baseStr = "";
-  let baseStrArr = [];
-  let hasMoreLen = true;
-  let index = 0;
-  while (hasMoreLen) {
-    let startNumber = index * 6;
-    let str = bStr.substr(startNumber, 6);
-    str.length > 0 && baseStrArr.push(str);
-    index += 1;
-    if (index * 6 > bStr.length) {
-      hasMoreLen = false;
+  //用于判断是否执行循环
+  let doWhile = true;
+
+  let res = [];
+
+  while (doWhile) {
+    //结束位置:
+    let endPoint = this.indexOf(splitTag, offset);
+    if (endPoint < 0) {
+      doWhile = false;
+    } else {
+      res.push(this.slice(offset, endPoint));
+      //新的偏移量:
+      offset = endPoint + len;
     }
   }
-  console.log(baseStrArr);
+  res.push(this.slice(offset));
+  return res;
 
-
-  baseStrArr.forEach(item => {
-    baseStr += Base64CodeLib[parseInt("00"+item, 2)];
-  })
-  return baseStr;
 }
+let arr = buffer.split('\n');
+console.log(arr.length);
 
-console.log(base64EnCode('dankogai'));
-
-//使用Node自带的方法验证
-console.log(Buffer.from('asdasds').toString('base64'));
+for (let index = 0; index < arr.length; index++) {
+  const element = arr[index];
+  console.log(element.toString());
+}
 

@@ -75,9 +75,93 @@ todo: 自己实现一个base64的转化功能
 使用数组
 `Buffer.from([1,2,3,4])`
 
+判断是否是buffer:
+`Buffer.isBuffer(Buffer.from('张三'))`
 
+copy Buffer
+因为分配内存都是连续的,并且分配好的内存是不能扩展的,所以想增大原来的一个内存不能再原来的基础上扩展,只能使用一块新的更大的内存来保存
+```javascript
+let buff1=Buffer.from('张');
+let buff2=Buffer.from('三');
 
+//现在的目标是 想要将 张三放到一块去
 
+//一个中文三个字节
+//两个字分配6个字节
+let buff=Buffer.alloc(6);
+
+//新的buffer.copy(目标buffer,新的buffer的开始位置,目标buffer的开始位置,目标buffer的结束位置)
+buff1.copy(buff,0,0,3);
+buff2.copy(buff,3,0,3);
+console.log(buff.toString());
+```
+```javascript
+//自己实现 Buffer的copy函数:
+Buffer.prototype.copy = function (targetBuffer, start, oldBufferStart, oldBufferEnd) {
+  let postion = start;
+  for (;oldBufferStart < oldBufferEnd; oldBufferStart++ , postion++) {
+    const buffer = this[oldBufferStart];
+    targetBuffer[postion] = buffer;
+  }
+}
+
+let buff1 = Buffer.from('张');
+let buff2 = Buffer.from('三');
+
+let buff = Buffer.alloc(6);
+buff1.copy(buff, 0, 0, 3)
+buff2.copy(buff, 3, 0, 3)
+console.log(buff.toString());
+
+```
+
+buffer的拼接 `Buffer.concat(数组,拼接的buffer,生成新的buffer的长度)`
+```javascript
+
+let buff1 = Buffer.from('张');
+let buff2 = Buffer.from('三');
+let newBuffer=Buffer.concat([buff1,buff2]);
+console.log(newBuffer.toString());
+
+```
+#### 扩展Buffer的split方法
+```javascript
+Buffer.prototype.split = function (splitTag) {
+  //找到分隔符的长度:
+  let len = Buffer.from(splitTag).length;
+
+  //用于标记开始位置:
+  let offset = 0;
+
+  //用于判断是否执行循环
+  let doWhile = true;
+
+  let res = [];
+
+  while (doWhile) {
+    //结束位置:
+    let endPoint = this.indexOf(splitTag, offset);
+    if (endPoint < 0) {
+      doWhile = false;
+    } else {
+      res.push(this.slice(offset, endPoint));
+      //新的偏移量:
+      offset = endPoint + len;
+    }
+  }
+  res.push(this.slice(offset));
+  return res;
+
+}
+let arr = buffer.split('\n');
+console.log(arr.length);
+
+for (let index = 0; index < arr.length; index++) {
+  const element = arr[index];
+  console.log(element.toString());
+}
+
+```
 
 #### 自己实现Base64加密解密
 
