@@ -124,3 +124,16 @@ function littleReadFile(bufferLength, startPostion, end = 0) {
 ```
 
 
+#### fs常用方法
+
+文件
+> `fs.readFile readFileSync` 读取文件内容
+> `fs.writeFile writeFileSync` 向文件中写入内容
+> `fs.rename(oldfilepath,newfilepath,callback)` 重名文件
+> `fs.unlink(filepath,callback)` 删除文件
+> `fs.existsSync fs.access` 文件是否存在
+> `fs.copy`拷贝文件
+
+文件夹
+> `fs.mkdir `创建目录
+> 
