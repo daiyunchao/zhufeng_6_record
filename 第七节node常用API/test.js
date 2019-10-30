@@ -1,88 +1,59 @@
 const fs = require('fs');
-const path = require('path')
-
-function mkdir(dirpath) {
-  let absolutePath = path.join(__dirname, dirpath);
-  console.log(absolutePath);
-
-  //将路径拆分
-  //分段判断是否文件夹存在
-  //如果不存在,创建文件夹
-  let dirpaths = dirpath.split('/');
-  let index = 1;
-  function next() {
-    if (index === dirpaths.length + 1) {
-      return;
-    }
-    let currentDirpath = dirpaths.slice(0, index++).join('/');
-    console.log(currentDirpath);
-
-    let isExists = fs.existsSync(currentDirpath);
-    if (isExists) {
-      //文件是存在的,创建下一级
-      next();
-    } else {
-      //文件不存在,创建文件夹
-      fs.mkdirSync(currentDirpath);
-      next();
-    }
-  }
-
-  next();
-
-}
-
-// mkdir('./a/b/c/d/e/f');
-console.log("创建完成....");
+const path = require('path');
 
 
-// function rmdir(dirpath) {
-//   //读取目的,判断目录中是否有文件或是文件夹
-//   //如果有文件删除文件
-//   //如果有文件夹再判断它其中是否有文件或文件夹
-//   let absolutePath = path.join(__dirname, dirpath);
-//   let currentPath = absolutePath;
-//   function next(rmpath) {
-//     let dirs = fs.readdirSync(rmpath);
-//     if (dirs.length == 0) {
-//       //如果是没有长度,则说明没有文件或是文件夹
-//       return fs.rmdirSync(rmpath);
-//     }
-//     dirs.forEach(item => {
-//       let newPath = path.join(rmpath, item);
-//       let stat = fs.statSync(newPath);
-//       if (stat.isFile()) {
-//         //如果是文件
-//         fs.unlinkSync(newPath)
-//       } else {
-//         //如果是文件夹
-//         next(newPath);
-//       }
-//     });
+//文件流
 
-//     //执行完了内部文件的删除再删除本文件夹
-//     fs.rmdirSync(rmpath);
-//   }
-//   next(currentPath);
-
-// }
-
-const { stat, readdir, rmdir, unlink } = require('fs').promises;
-
-async function rmdirNew(dirpath) {
-  let s=await stat(dirpath);
-  if (s.isFile()) {
-    //如果是文件
-    await unlink(dirpath);
-  } else {
-    //如果是文件夹
-    let dirs = await readdir(dirpath);
-    dirs = dirs.map(item => rmdirNew(path.join(dirpath, item)));
-    await Promise.all(dirs);
-    await rmdir(dirpath);
-  }
-}
-rmdirNew(path.join(__dirname, './a'));
+//创建一个可读文件流
+//创建一个文件流不等于真正的去读取文件,而是持有读取文件的配置,就像我的水管已经修好,就等我拧开水龙头一样
+let rs = fs.createReadStream('./node.txt', {
+  //权限有 rwx三种 r:读取 w:写入 x:执行
+  flags: 'r',//当前要做什么操作 有很多类型: r:读取文件,如果文件不存在则会报错, 
+  //a:打开文件用于追加,如果文件不存在,则创建
+  //w: 打开文件用于写入。如果文件不存在则创建文件，如果文件已存在则截断文件
+  encoding: null,//读取时使用什么编码,默认值为 Buffer
+  mode: 0o666,//模式,权限 读取的权限是4 写入的权限是2 执行的权限是1 
+  //如果666:则表示 我的权限,我的用户组权限 别人的权限 都是可读可写的但不能执行
+  //如果是777: 则表示 我&用户组&别人 都有最高权限 读写执行
+  autoClose: false,//是否自动关闭
+  //start:0,//读取的开始位置
+  //end:10,//读取的结束位置
+  highWaterMark: 64 * 1024,//每次读取暂用内存的大小单位是字节,默认大小是64kb
+})
 
 
+//当文件被打开的时候回被调用
+rs.on('open', () => {
+  console.log("文件已打开");
+})
 
+//当有新内容被读取的时候回被调用
+//因为每次读取时有限制的 受到参数:highWaterMark的影响,默认是64kb
+//所有,我们需要将读取到的内容进行保存
+
+//当然如果是大文件,使用以下的方式完全是不妥的,因为用一个变量去保存内容还是保存到内存中
+//就失去了文件流的意义
+//这里只是做一个api的演示:
+
+//申明一个数组用于存放,一直源源不断读取到的新内容
+//为甚用数组?因为读取的是buffer
+let arr = [];
+rs.on('data', (data) => {
+  console.log("有内容被读取了");
+  arr.push(data)
+})
+
+
+//文件读取完毕后被调用
+rs.on('end', () => {
+  console.log("文件已读取完毕");
+  //将读取完的buffer转换成字符串
+  let res=Buffer.concat(arr).toString();
+  console.log(res);
+  
+})
+
+//有异常时会被触发
+rs.on('error', () => {
+  console.log("读取文件失败");
+})

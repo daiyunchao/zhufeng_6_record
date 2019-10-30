@@ -232,3 +232,111 @@ async function rmdirNew(dirpath) {
 }
 rmdirNew(path.join(__dirname, './a'));
 ```
+
+#### 删除多级文件夹 广度删除
+```javascript
+//广度删除文件夹
+
+//有文件夹 如下
+/*
+-a
+--b
+---d
+--c
+---e
+---f
+*/
+//实现横向删除
+//解决办法: 将文件夹读取成:abcdef 然后在依次删除
+
+function rmDirNew(dirpath) {
+  let paths = getPaths(dirpath);
+  console.log("paths==>", paths);
+  paths.reverse().forEach(item => {
+    let s = fs.statSync(item);
+    if (s.isFile()) {
+      fs.unlink(item)
+    } else {
+      fs.rmdirSync(item);
+    }
+  });
+
+}
+
+function getPaths(dirpath, dirs = []) {
+  dirs.push(dirpath);
+  let cstat = fs.statSync(dirpath);
+  if (cstat.isFile()) {
+    return;
+  }
+  let cdirs = fs.readdirSync(dirpath);
+  cdirs.map(item => getPaths(path.join(dirpath, item), dirs));
+  return dirs;
+}
+
+rmDirNew(path.join(__dirname, './a'));
+console.log("删除完成");
+
+```
+
+#### 文件流
+##### 小例子和参数解析
+```javascript
+//可读流小例子:
+//文件流
+
+//创建一个可读文件流
+//创建一个文件流不等于真正的去读取文件,而是持有读取文件的配置,就像我的水管已经修好,就等我拧开水龙头一样
+let rs = fs.createReadStream('./node.txt', {
+  //权限有 rwx三种 r:读取 w:写入 x:执行
+  flags: 'r',//当前要做什么操作 有很多类型: r:读取文件,如果文件不存在则会报错, 
+  //a:打开文件用于追加,如果文件不存在,则创建
+  //w: 打开文件用于写入。如果文件不存在则创建文件，如果文件已存在则截断文件
+  encoding: null,//读取时使用什么编码,默认值为 Buffer
+  mode: 0o666,//模式,权限 读取的权限是4 写入的权限是2 执行的权限是1 
+  //如果666:则表示 我的权限,我的用户组权限 别人的权限 都是可读可写的但不能执行
+  //如果是777: 则表示 我&用户组&别人 都有最高权限 读写执行
+  autoClose: false,//是否自动关闭
+  //start:0,//读取的开始位置
+  //end:10,//读取的结束位置
+  highWaterMark: 64 * 1024,//每次读取暂用内存的大小单位是字节,默认大小是64kb
+})
+
+
+//当文件被打开的时候回被调用
+rs.on('open', () => {
+  console.log("文件已打开");
+})
+
+//当有新内容被读取的时候回被调用
+//因为每次读取时有限制的 受到参数:highWaterMark的影响,默认是64kb
+//所有,我们需要将读取到的内容进行保存
+
+//当然如果是大文件,使用以下的方式完全是不妥的,因为用一个变量去保存内容还是保存到内存中
+//就失去了文件流的意义
+//这里只是做一个api的演示:
+
+//申明一个数组用于存放,一直源源不断读取到的新内容
+//为甚用数组?因为读取的是buffer
+let arr = [];
+rs.on('data', (data) => {
+  console.log("有内容被读取了");
+  arr.push(data)
+})
+
+
+//文件读取完毕后被调用
+rs.on('end', () => {
+  console.log("文件已读取完毕");
+  //将读取完的buffer转换成字符串
+  let res=Buffer.concat(arr).toString();
+  console.log(res);
+  
+})
+
+//有异常时会被触发
+rs.on('error', () => {
+  console.log("读取文件失败");
+})
+
+```
