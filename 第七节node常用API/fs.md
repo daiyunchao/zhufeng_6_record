@@ -340,3 +340,88 @@ rs.on('error', () => {
 })
 
 ```
+
+#### 可读流的原理:
+ 主要是用到了 `open` `close` `read` 这些`fs`的方法 再加上 `event`去做事件
+``` javascript
+//可读流原理分析
+let fs = require('fs');
+const EventEmitter = require('events')
+class ReadStream extends EventEmitter {
+    constructor(filepath, options) {
+        super();
+        //将用户传入的参数进行保存
+        this.filepath = filepath;
+        this.flags = options.flags || 'r';
+        this.encoding = options.encoding || null;
+        this.mode = options.mode || 0o666;
+        this.autoClose = options.autoClose || true;
+        this.highWaterMark = options.highWaterMark || 64 * 1024;
+        this.start = options.start || 0;
+        this.end = options.end;
+        this.fd = null;
+        this.isflowing = false;
+        this.offset = 0;
+        this.size=0;
+
+
+        //创建这个对象时，就将这个文件打开
+        this.open();
+
+
+        //当用户监听data事件，才真正的读取文件
+        this.on('newListener', (type) => {
+            if (type === 'data') {
+                //如果用户监听的是data，则开始读取文件
+                this.read();
+            }
+        })
+    }
+
+
+    read() {
+        //问题：可能调用该方法时，还没有得到fd
+        console.log("type this fd==>", typeof this.fd)
+        if (typeof this.fd !== 'number') {
+            //如果没有收到，则去监听open事件，当收到open事件的通知，则肯定就拿到了fd
+            return this.once('open', (fd) => {
+                //this.fd=fd;//可使用该参数，也可直接使用this.fd
+                 this.read();
+            })
+        }
+        let howMuchToRead = this.end?Math.min(this.highWaterMark,this.end-this.start + 1 - this.offset):this.highWaterMark;
+        let buffer = Buffer.alloc(howMuchToRead);
+        fs.read(this.fd, buffer, 0, howMuchToRead, this.offset, (err, readByteLength) => {
+            if (readByteLength > 0) {
+                this.emit('data', buffer.slice(0,readByteLength));
+                this.offset += readByteLength;
+                this.read();
+            } else {
+                this.emit('end')
+                if (this.autoClose) {
+                    this.close();
+                }
+            }
+        })
+    }
+    
+    close() {
+        fs.close(this.fd, () => {
+            this.emit('close');
+        })
+    }
+    open() {
+        let stat=fs.statSync(this.filepath);
+        console.log("stat==>",stat);
+        
+        fs.open(this.filepath, (err, fd) => {
+            this.fd = fd;
+            //当文件被打开，就发送一个通知，告诉调用者
+            this.emit('open', this.fd);
+        })
+    }
+}
+
+
+module.exports = ReadStream;
+```
