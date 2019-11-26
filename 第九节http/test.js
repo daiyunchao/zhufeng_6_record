@@ -1,48 +1,48 @@
+//封装成静态资源服务器
 const http = require('http');
-const nodeUrl = require('url')
-let server = http.createServer((req, res) => {
-  //req:请求对象 是一个可读流
-  //res:响应对象 是一个可写流
-  //req.url: 请求的url
-  //使用url模块将url进行解析
+const url = require('url');
+const path = require('path')
+const fs = require('fs').promises;
+const mime=require('mime')
+const { createReadStream } = require('fs');
 
-  let urlObj = nodeUrl.parse(req.url, true)
-  console.log("hostname==>", urlObj);//hostname
-  console.log("pathname==>", urlObj.pathname);//不带参数的url
-  console.log("query==>", urlObj.query);//参数对象
+class StaticServer {
+  async handlerRequest(req, res) {
+    console.log(req.url);
 
-  //请求行:
-  console.log("httpVesion===>", req.httpVersion);
-  console.log("http url===>", req.url);
+    let { pathname } = url.parse(req.url);
+    let filepath = path.join(__dirname, pathname);
+    try {
+      let stat = await fs.stat(filepath);
+      if (stat.isFile()) {
+        this.sendFile(filepath, res);
+      } else {
+        filepath = path.join(filepath, 'index.html');
+        await fs.access(filepath);
+        this.sendFile(filepath, res)
+      }
+    } catch (error) {
+      return this.sendError(error, res);
+    }
+  }
+  sendFile(filepath, res) {
+    res.statusCode = 200;
+    let type = mime.getType(filepath);
+    res.setHeader('Content-Type', `${type};charset:utf-8`);
+    createReadStream(filepath).pipe(res);
+  }
+  sendError(e, res) {
+    res.statusCode = 404;
+    let type = mime.getType('.txt');
+    res.setHeader('Content-Type', `${type};charset:utf-8`);
+    res.end('Not Found');
+  }
+  start(...args) {
+    //监听服务器
+    http.createServer(this.handlerRequest.bind(this)).listen(...args);
+  }
+}
 
-  //请求头:
-  console.log("http header===>", req.headers);
-
-  //请求体:
-  let arr = [];
-  req.on('data', function (chunck) {
-    console.log("on data", chunck);
-    arr.push(chunck);
-  })
-
-  req.on('end', function () {
-    console.log("on end", Buffer.concat(arr).toString());
-  })
-
-
-  //响应行
-  res.statusCode=200;
-
-  //响应头
-  res.setHeader('Content-Type','text/plain;charset=utf-8')
-
-  //响应体:
-  res.write('这是响应体')
-  res.write('这是响应体2')
-  res.write('这是响应体3')
-  res.end();
-});
-
-server.listen(3000, () => {
-  console.log("ready listen 3000");
+new StaticServer().start(3000, () => {
+  console.log(`port 3000 start`);
 })
