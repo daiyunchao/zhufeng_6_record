@@ -1,30 +1,35 @@
-//可写流
-// process.stdout.write('这是一段内容')
+const Koa = require('koa');
+const app = new Koa();
 
-//可写流
-// process.stdin.on('data', (data) => {
+// x-response-time
 
-// })
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  console.log("11");
+  await next();
+  console.log("22");
+  const ms = Date.now() - start;
+  ctx.set('X-Response-Time', `${ms}ms`);
+});
 
-//通过可读流和可写流实现回声效果:
-//就像 createReadStream(filepath).pipe(res) 相同功能
-//process.stdin.pipe(process.stdout)
+// logger
 
-//添加需求,如何才能将我的回声效果中输入的小写字母转换成大写字母呢
-//就需要我们的转换流
-//调用就变成了
-//process.stdin.pipe(charTransform).pipe(process.stdout) 如何实现呢
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  console.log("33");
+  await next();
+  console.log("44");
+  const ms = Date.now() - start;
+  console.log(`${ctx.method} ${ctx.url} - ${ms}`);
+});
 
-let { Transform } = require('stream');
+// response
 
-class CharTransform extends Transform {
-  _transform(chunk, encoding, callback) {
-    chunk = chunk.toString().toUpperCase();
-    // console.log("chunk==>",chunk);
-    this.push(chunk)
-    callback();
-  }
-}
+app.use(async ctx => {
+  console.log("55");
+  ctx.body = 'Hello World';
+});
 
-let charTransform = new CharTransform();
-process.stdin.pipe(charTransform).pipe(process.stdout)
+app.listen(3000);
+app.listen(3001);
+app.listen(3002);
