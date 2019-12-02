@@ -123,5 +123,11 @@ app.use(async ctx => {
 
 ```
 
-
+#### koa中的 context request response req res 之间的关系
+- context 上下文 作用主要是代理了 request response req res 这里面的方法
+- request koa 自己封装的请求方法
+- response koa 自己封账的响应方法
+- req 原生http的请求方法
+- res 原生http的响应方法
+   
 
