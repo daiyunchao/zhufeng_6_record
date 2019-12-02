@@ -1,3 +1,4 @@
+const Url = require('url')
 let reqeust = {
   get url() {
     console.log("in get url==>");
@@ -5,6 +6,10 @@ let reqeust = {
   },
   get method() {
     return this.req.method;
+  },
+
+  get path() {
+    return Url.parse(this.req.url, true).pathname;
   }
 };
 
