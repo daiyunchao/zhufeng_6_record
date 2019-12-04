@@ -214,3 +214,34 @@ app.use(async (ctx, next) => {
 })
 app.listen(3000)
 ```
+
+#### 中间件
+- 静态文件中间件,根据用户访问的路径去查找文件 如果找不到再走路由 可使用 `koa-static`中间件
+
+```javascript
+//静态资源路由
+function static(dirpath) {
+  return async function (ctx, next) {
+    console.log("111222",ctx.path);
+    
+    try {
+      let routerpath = ctx.path;
+      let filepath = path.join(__dirname, dirpath,routerpath);
+      let stat = fs.statSync(filepath);
+      if (stat.isFile()) {
+        let type = mime.getType(filepath);
+        ctx.set('Content-Type', `${type};charset=utf-8`)
+        ctx.body = fs.createReadStream(filepath);
+      } else {
+        filepath += "/index.html";
+        stat = fs.statSync(filepath);
+        let type = mime.getType(filepath);
+        ctx.set('Content-Type', `${type};charset=utf-8`)
+        ctx.body = fs.createReadStream(filepath);
+      }
+    } catch (e) {
+      return await next();
+    }
+  }
+}
+```
