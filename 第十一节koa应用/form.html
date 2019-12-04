@@ -9,11 +9,12 @@
 </head>
 
 <body>
-  <form action="/login" method="POST">
+  <form action="/login" method="POST" enctype="multipart/form-data">
     用户名:<input type="text" name="username">
     <br>
     密码:<input type="password" name="password">
     <br>
+    <input type="file" name="avatur">
     <button type="submit">提交</button>
   </form>
 </body>
