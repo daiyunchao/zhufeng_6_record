@@ -245,3 +245,22 @@ function static(dirpath) {
   }
 }
 ```
+
+#### koa-router 路由中间件
+- 使用 
+```javascript
+const Router=require('koa-router');
+const router=new Router();
+router.get('/',function(ctx,next){
+});
+app.use(router.routes())
+```
+
+- 全匹配 `/user`
+- 正则表达式 `/\user\/+d`
+- 参数 `/user/:id` 可以使用 ctx.params获取参数
+
+#### 通过 `koa-generator`快速搭建node的koa环境
+```javascript
+yarn global add koa-generator
+```
