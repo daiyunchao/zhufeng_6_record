@@ -112,7 +112,6 @@ let server = http.createServer((req,res)=>{
 
 #### localStroage sessionStorage cookie session 区别
 1. localStroage 不能跨域 最多能存 5m 超过丢失 发请求的时候不会自动带上
-2. indexDB
-3. sessionStorage 浏览器关闭丢失
-4. cookie 在header上 每次请求自动带上 解决无状态的问题 最多4k 浪费流量
-5. session 基于cookie 存到服务器上
+2. sessionStorage 浏览器关闭丢失
+3. cookie 在header上 每次请求自动带上 解决无状态的问题 最多4k 浪费流量
+4. session 基于cookie 存到服务器上
