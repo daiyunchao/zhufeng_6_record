@@ -233,3 +233,46 @@ optimization:{
 ```
 
 - webpack 处理文件的loader `file-loader` 自动拷贝文件 如果需要转换成base64 使用`url-loader` 
+
+- webpack去转换js 主要会使用到的是babel
+- `@babel/core` babel的核心模块
+- `@babel/presets-env` 包含将es6转换成es5的全部包的集合(就是插件的集合)
+- `babel-loader` 是webpack的loader
+- 它们三者的关系是 webpack打包的时候使用 `babel-loader`去调用`@babel/core`去转换,而在`@babel/core`转换过程中也需要调用到`@babel/presets-env`
+- 为什么babel7前面会有一个@? 是因为它使用了 `npm private scope` 将`@babel`变成了一个作用域,将它的相关库都放到了`@babel`作用域下,防止重名
+-  `.babelrc`文件是干嘛的? `.babelrc`文件就是 `babel-loader`的`options`选项,如果觉得webpack.config文件中写的过多,则可以使用`.babelrc`文件进行分离
+```javascript
+//.babelrc文件示例:
+//presets 中放的是插件的集合
+//plugins 中放的是单个插件
+{
+    "presets":[
+        "@babel/preset-env"
+    ],
+    "plugins":[
+
+    ]
+}
+```
+- `babelrc`文件中的 presets执行顺序是从下向上执行 而 plugins的执行顺序是从上向下执行的
+- 在 babel7中 `babel-polyfill`已经废弃,代替它的方法是
+```javascript
+{
+    "presets":[
+        [
+            "@babel/preset-env",{
+                "useBuiltIns":"usage",//按需加载一些使用到的库
+                "corejs":2,//使用corejs的版本二
+            }
+        ]
+    ],
+    "plugins":[
+
+    ]
+}
+```
+- `@babel/plugin-transform-runtime` 都以导入的方式使用Babel的帮助函数，而不是每个文件都复制一份帮助函数的代码
+  1. 提高代码重用性，缩小编译后的代码体积
+  2. 防止污染全局作用域。（启用corejs配置）
+
+- `@babel/preset-typescript` 可以用于解析 `typescript`语法
