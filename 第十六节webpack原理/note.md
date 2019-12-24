@@ -255,3 +255,171 @@ eval("__webpack_require__.r(__webpack_exports__);\nfunction mytest() {\r\n    co
 })
 ```
 
+### webpack loader
+- loader其实就是一个函数
+```javascript
+//模仿 babel-loader
+const babel=require('@babel/core');
+
+//参数: source:需要转换的资源内容
+//this.request 格式为 loader1!loader2!loader3!index.js
+function loader(source,sourceMap){
+    const options={
+        presets:["@babel/preset-env"],
+        inputSourceMap:sourceMap,
+        sourceMap:true,//告诉webpack 需要输出webpack
+        filename:this.request.split('!').pop(),//打包后的文件名 
+    }
+
+    //交给babel去转换
+    //code:转换后的源代码
+    //map:mapsource
+    //ast:抽象语法树
+    let {code,map,ast}=babel.transform(source,options);
+
+    //回调
+    this.callback(null,code,map,ast)
+}
+module.exports=loader; 
+
+//如果我们自定义了loader,如何在webpack中使用呢?
+
+//webpack.config.js
+resolveLoader:{
+    //方式1.alias
+    alias:{
+        //loader的名称-对应的路径
+        "babel-loader":path.join(__dirname,'xxxxx/xxx/xx.js')
+    },
+
+    //方式2.module,适合有多个loader的情况
+    modules:[path.join(__dirname,'loader的文件夹'),'node_modules']
+},
+module:{
+    rules:[
+        {
+            test:/\.js$/,
+            use:['babel-loader'],//当webpack使用到babel-loader的时候,会通过resolveloaders去找loader
+        }
+    ]
+}
+```
+
+- webpackloader的加载顺序
+  1. 如果loader中没有pitch函数,或pitch函数没有返回值,loder的执行顺序是从右向左执行
+  2. 如果pitch函数中有返回值 就会顺序走pitch函数,直到走完全部loader的pitch在逆向执行loader函数(自己的loader是不会执行的)
+```javascript
+//例子1:没有pitch函数的loader
+//现在假如有3个自定义的loader是这样的
+function loader1(source){
+    return source+"//1"
+}
+module.exports=loader1;
+
+function loader2(source){
+    return source+"//2"
+}
+module.exports=loader2;
+
+function loader3(source){
+    return source+"//3"
+}
+module.exports=loader3;
+
+//有 index.js 入口文件是这样的
+console.log("this is index js");
+
+//webpack的配置是:
+module:{
+    rule:/\.js$/,
+    use:['loader1','loader2','loader3']
+}
+//执行webpack打包打印出来的源代码是
+console.log("this is index js")//3//2//1
+
+//可以看到在没有pitch函数的loader中,执行的顺序是 逆向执行的
+
+```
+
+```javascript
+//例子2:有pitch函数时候
+
+function loader1(source){
+    return source+"//1"
+}
+loader1.pitch=function(){
+    return "pitch1"
+}
+module.exports=loader1;
+
+function loader2(source){
+    return source+"//2"
+}
+loader2.pitch=function(){
+    return "pitch2"
+}
+module.exports=loader2;
+
+function loader3(source){
+    return source+"//3"
+}
+loader2.pitch=function(){
+    return "pitch3"
+}
+module.exports=loader3;
+
+//有 index.js 入口文件是这样的
+console.log("this is index js");
+
+//webpack的配置是:
+module:{
+    rule:/\.js$/,
+    use:['loader1','loader2','loader3']
+}
+//执行webpack打包打印出来的源代码是
+// pitch3//2//1
+//可以发现 如果有pitch函数,则会执行pitch函数,当顺序的执行完pitch函数后(或遇到后一个pitch函数没有返回值)再跳过自己的loader方法逆向的执行loader函数 并且pitch函数的返回值成了下一个loader的source参数
+
+```
+
+```javascript
+//例子3:只有部分pitch函数
+//例子中的loader3没有pitch函数
+function loader1(source){
+    return source+"//1"
+}
+loader1.pitch=function(){
+    return "pitch1"
+}
+module.exports=loader1;
+
+function loader2(source){
+    return source+"//2"
+}
+loader2.pitch=function(){
+    return "pitch2"
+}
+module.exports=loader2;
+
+function loader3(source){
+    return source+"//3"
+}
+
+module.exports=loader3;
+
+//有 index.js 入口文件是这样的
+console.log("this is index js");
+
+//webpack的配置是:
+module:{
+    rule:/\.js$/,
+    use:['loader1','loader2','loader3']
+}
+//执行webpack打包打印出来的源代码是
+// pitch2//1
+//可以发现 如果有pitch函数,则会执行pitch函数,当顺序的执行完pitch函数后(或遇到后一个pitch函数没有返回值)再跳过自己的loader方法逆向的执行loader函数 并且pitch函数的返回值成了下一个loader的source参数
+
+```
+
+- loader的类型 post(后置) inline(内联) normal(正常) pre(前置)
+  
