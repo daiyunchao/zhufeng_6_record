@@ -163,3 +163,83 @@ exec('node --V',(err,stdout,stderr)=>{
 console.log(stdout)
 })
 ```
+
+#### Cluster
+> Cluster的原理:
+- node中去获取系统的cpu的个数(4核)
+`const cpus =require('os').cpus().length`
+
+- 使用fork,子进程监听同一个端口号:
+```javascript
+//index.js
+let http=require('http');
+let {fork}=require('child-process')
+let path=require('path');
+let cpus=require('os').cpus().length;
+let server=http.createServer((req,res)=>{
+}).listen(3000);
+
+//实现一个cpu启动一个服务
+for(let i=0;i<cpus-1;i++){
+    let cp=fork('server.js',{cwd:path.join(__dirname)});
+    //发送一个server给子进程,子进程监听服务,这样就能子进程和父进程同时监听一个端口号
+    cp.send('server',server)
+}
+
+
+//server.js
+let http=require('http');
+//接收父进程的消息,当发送一个server来的时候,将会在第二个参数中
+process.on('message',(data,server){
+    //当我监听server的时候,就可以监听父进程相同的端口
+    http.createServer((req,res)=>{
+    }).listen(server);
+})
+```
+
+- 为了方便node提供了Cluster来实现集群
+```javascript
+const cluster=require('cluster');
+let http=require('http');
+let cpus=require('os').cpus().length;
+
+//判断当前是否是守护进程
+if(cluster.isMaster){
+    //可监听子进程的状态:
+    cluster.on('exit',function(worker){
+        log('worker pid==>'.worker.process.pid);
+        //如果有子进程挂了,再启动一个
+        cluster.fork();
+    })
+    //当执行cluster的fork方法时就会执行else的代码
+    for(let i=0;i<cpus;i++){
+        cluster.fork();
+    }
+}
+}else{
+    //守护进程有几个fork,就启动几个进程,并且同时监听同一个端口
+    http.createServer((req,res)=>{
+    }).listen(3000);
+}
+```
+
+### PM2
+```javascript
+//监听文件变化,自动重启
+pm2 start xxx.js --watch
+
+//使用pm2启动npm的命令(启动package.json的run dev命令)
+pm2 start npm --run dev
+
+//清除pm2的命令
+sudo npm cache clean --fore
+
+//自动通过cpu个数启动服务进程数量 负载均衡
+pm2 start xx.js -i max
+
+//为进程取一个名字
+pm2 start --name xxx
+
+//自动生成一个配置文件
+pm2 init 
+```
