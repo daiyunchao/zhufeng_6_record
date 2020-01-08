@@ -207,3 +207,254 @@ data.d = [1,2,3]
         })
     </script>
 ```
+4. `vm.$data`表示vm中的data `vm.$options`表示vm对象
+5. `vm.$set()`为vm的data设置新的值为什么有这个方法(因为在向data中添加新的属性时是不会生效的) `vm.$delete()`删除vm的data属性
+```html
+<div id="root">{{name}}</div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script>
+       let vm= new Vue({
+            el:"#root",//绑定节点
+            data(){//提供数据
+                return {
+                    name:"zhangsan",
+                    ages:{}
+                }
+            }
+        });
+        //监听了name的变化
+        //但这个实例中只会执行一次
+        vm.$watch('name',function(newValue,oldValue){
+            console.log("newValue==>",newValue)
+        });
+
+        //更新了两次的值
+        //注意这里的视图的更新是异步的,是下一个eventloop中执行的
+        vm.name="lisi";
+        vm.name="wangwu";
+        console.log(vm.$el.innerHTML)//zhangsan 注意这里获取到的是zhangsan,因为这个时候视图还没有被更新
+
+        //想要获取修改后的值:
+        vm.$nextTick(()=>{
+            console.log(vm.$el.innerHTML)//wangwu 获取到了更新后的值
+        })
+
+        vm.ages.age=18;//注意 这里是不会生效的,因为age并没有定义在data返回的对象中
+        //应该使用
+        vm.$set(vm.ages,'age',18);
+    </script>
+```
+
+#### vue指令
+
+- 指令的功能是封装操作dom的功能
+- `{{}}`这种语法在vue中叫 小胡子语法,能取值,运算(获取运算结果) 三元表达式 例子`{{name}} {{1+1}} {{1==true?"yes":"no"}} {{[1,2,3]}} {{ {name:'zhangsan'} }}` 注意在`{{}}`中写对象的时候 两边需要添加空格,否则会解析不出来
+- `v-once`只渲染一次,再有修改它的值,将不会被渲染
+```html
+<div id="root">
+    {{name}}
+<div v-once>v-once{{name}}</div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                name: "zhangsan"
+            }
+        }
+    });
+    
+</script>
+```
+- `v-html`将内容按照html的样子输出
+```html
+<div id="root">
+    {{name}}
+    <!-- 这就会原样的输出html -->
+<div v-html="temp"></div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                temp:"<h1>this is some text</h1>"
+                name: "zhangsan"
+            }
+        }
+    });
+    
+</script>
+```
+- `v-bind`绑定一个值
+
+```html
+<div id="root">
+    {{name}}
+    <!-- 将title属性的值绑定成data的name -->
+<div v-bind:title="name">你好</div>
+    <!-- 简写的方式 -->
+<div :title="name">你好</div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                temp:"<h1>this is some text</h1>"
+                name: "zhangsan"
+            }
+        }
+    });
+    
+</script>
+```
+
+- `v-for`循环数据
+```html
+<div id="root">
+    <ul>
+        <!-- 使用v-for进行循环 :key绑定key值为index(这里会有性能上的问题) -->
+        <li v-for="(value,index) in arr" :key="index">
+            {{value}}
+        </li>
+    </ul>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                name: "zhangsan",
+                arr: ["张三", "李四", "王五"]
+            }
+        }
+    });
+</script>
+
+<!-- 循环多个li -->
+<div id="root">
+    <ul>
+        <!-- 使用到 template template是一个无意义的标签不会产生无意义的标签 -->
+        <template v-for="(item,index) in arr">
+            <li :key="`name_${index}`">
+                {{item.name}}
+            </li>
+            <li :key="`age_${index}`">
+                {{item.age}}
+            </li>
+        </template>
+
+
+    </ul>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                name: "zhangsan",
+                arr: [{
+                        name: "zhangsan",
+                        age: 18
+                    },
+                    {
+                        name: "lisi",
+                        age: 20
+                    },
+                    {
+                        name: "wangwu",
+                        age: 22
+                    },
+                ]
+            }
+        }
+    });
+</script>
+```
+- `v-if v-else` 元素是否存在 `v-show`元素是否显示不能和`template`一起使用,因为template不是一个真实的dom节点,不能控制不存在的节点是否显示
+```html
+<div id="root">
+    <template v-if="isShow">
+        <span>if{{name}}</span>
+    </template>
+    <template v-else="!isShow">
+        <span>else{{name}}</span>
+    </template>
+   
+    <div v-show="!isShow">
+        <span>show{{name}}</span>
+    </div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                isShow:false,
+                name: "zhangsan"
+            }
+        }
+    });
+</script>
+```
+- `v-model`双向绑定
+```html
+<div id="root">
+    <template v-if="isShow">
+        <span>if{{name}}</span>
+    </template>
+    <template v-else="!isShow">
+        <span>else{{name}}</span>
+    </template>
+
+    <div v-show="!isShow">
+        <span>show{{name}}</span>
+    </div>
+
+    <div>
+        <span>{{name}}</span>
+        <input type="text" :value="name" @input="changeName">
+        <!-- 意思是相同的,@是v-on:的简写 -->
+        <input type="text" :value="name" v-on:input="changeName">
+
+        <!-- 将方法直接写在html中-->
+        <input type="text" :value="name" @input="e=>name=e.target.value">
+        
+        <!-- v-model 是 value 和 @input的简写 -->
+        <input type="text" v-model="name">
+    </div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        methods: {
+            //vue的缺点:在methods中都将this指定到了vm对象
+            changeName(e) {
+                this.name = e.target.value;
+            }
+        },
+        data() { //提供数据
+            return {
+                isShow: false,
+                name: "zhangsan"
+            }
+        }
+    });
+</script>
+```

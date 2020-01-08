@@ -1,24 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
-</head>
-<body>
-    <div id="root">{{name}}</div>
-    <script src="./node_modules/vue/dist/vue.js"></script>
-    <script>
-      let vm=  new Vue({
-            el:"#root",
-            data(){
-                return {
-                    name:{a:[{name:"zhangsan"}]}
-                }
+<div id="root">{{name}}</div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        data() { //提供数据
+            return {
+                name: "zhangsan"
             }
-        });
-        vm.a[0].name="lisi"
-    </script>
-</body>
-</html>
+        }
+    });
+    //监听了name的变化
+    //但这个实例中只会执行一次
+    vm.$watch('name', function (newValue, oldValue) {
+        console.log("newValue==>", newValue)
+    });
+
+    //更新了两次的值
+    //注意这里的视图的更新是异步的,是下一个eventloop中执行的
+    vm.name = "lisi";
+    vm.name = "wangwu";
+    console.log(vm.$el.innerHTML) //zhangsan 注意这里获取到的是zhangsan,因为这个时候视图还没有被更新
+
+    //想要获取修改后的值:
+    vm.$nextTick(() => {
+        console.log(vm.$el.innerHTML) //wangwu 获取到了更新后的值
+    });
+    console.log("vm data==>",vm.$data);
+</script>
