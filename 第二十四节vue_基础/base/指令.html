@@ -18,9 +18,35 @@
 
         <!-- 将方法直接写在html中-->
         <input type="text" :value="name" @input="e=>name=e.target.value">
-        
+
         <!-- v-model 是 value 和 @input的简写 -->
         <input type="text" v-model="name">
+
+        <!-- 绑定textarea -->
+        <textarea v-model="name" cols="30" rows="10"></textarea>
+        <!-- select绑定值 -->
+        <select name="" id="" v-model="selectId">
+            <!-- 默认值 不能选择-->
+            <option value="" disabled>请选择</option>
+            <option :value="item.id" v-for="item in options">
+                {{item.name}}
+            </option>
+        </select>
+
+        <!-- 绑定radio 根据value值是否相等而选中-->
+        <input type="radio" value="男" v-model="gender">Boy
+        <input type="radio" value="女" v-model="gender">Girl
+
+
+        <!-- 绑定checkbox -->
+        <input type="checkbox" value="游泳" v-model="checkboxValue">
+        <input type="checkbox" value="健身" v-model="checkboxValue">
+
+        <!-- 在v-model指令后添加修饰符 trim-->
+        <input type="text" v-model.trim="name">
+        
+        <!-- 限制只能数字 -->
+        <input type="text" v-model.number="name">
     </div>
 </div>
 <div id="root"></div>
@@ -37,7 +63,23 @@
         data() { //提供数据
             return {
                 isShow: false,
-                name: "zhangsan"
+                name: "zhangsan",
+                gender: "男",
+                selectId: "",
+                checkboxValue: [],
+                options: [{
+                        "name": "张三",
+                        id: "zhangsan"
+                    },
+                    {
+                        "name": "李四",
+                        id: "lisi"
+                    },
+                    {
+                        "name": "王五",
+                        id: "wangwu"
+                    },
+                ]
             }
         }
     });

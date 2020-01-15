@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root">
+
+    </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+
+        })
+        // vm.$watch("name",function(newName){
+        //     console.log("newName==>", newName);
+        // })
+        function initWatch(watch) {
+            for (const key in watch) {
+                vm.$watch(key, watch[key])
+            }
+        }
+        initWatch({
+            name: function (newName) {
+                console.log("newName==>", newName);
+            }
+        });
+    </script>
+</body>
+
+</html>

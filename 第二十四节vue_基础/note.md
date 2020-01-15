@@ -435,7 +435,9 @@ data.d = [1,2,3]
         <input type="text" :value="name" @input="e=>name=e.target.value">
         
         <!-- v-model 是 value 和 @input的简写 -->
+        <!-- input -->
         <input type="text" v-model="name">
+
     </div>
 </div>
 <div id="root"></div>
@@ -458,3 +460,283 @@ data.d = [1,2,3]
     });
 </script>
 ```
+
+### vue base 基础二
+- 常用`v-model`指令
+```html
+<div id="root">
+    <template v-if="isShow">
+        <span>if{{name}}</span>
+    </template>
+    <template v-else="!isShow">
+        <span>else{{name}}</span>
+    </template>
+
+    <div v-show="!isShow">
+        <span>show{{name}}</span>
+    </div>
+
+    <div>
+        <span>{{name}}</span>
+        <input type="text" :value="name" @input="changeName">
+        <!-- 意思是相同的,@是v-on:的简写 -->
+        <input type="text" :value="name" v-on:input="changeName">
+
+        <!-- 将方法直接写在html中-->
+        <input type="text" :value="name" @input="e=>name=e.target.value">
+
+        <!-- v-model 是 value 和 @input的简写 -->
+        <input type="text" v-model="name">
+
+        <!-- 绑定textarea -->
+        <textarea v-model="name" cols="30" rows="10"></textarea>
+        <!-- select绑定值 -->
+        <select name="" id="" v-model="selectId">
+            <!-- 默认值 不能选择-->
+            <option value="" disabled>请选择</option>
+            <option :value="item.id" v-for="item in options">
+                {{item.name}}
+            </option>
+        </select>
+
+        <!-- 绑定radio 根据value值是否相等而选中-->
+        <input type="radio" value="男" v-model="gender">Boy
+        <input type="radio" value="女" v-model="gender">Girl
+
+
+        <!-- 绑定checkbox -->
+        <input type="checkbox" value="游泳" v-model="checkboxValue">
+        <input type="checkbox" value="健身" v-model="checkboxValue">
+
+        <!-- 在v-model指令后添加修饰符 trim-->
+        <input type="text" v-model.trim="name">
+        
+        <!-- 限制只能数字 -->
+        <input type="text" v-model.number="name">
+    </div>
+</div>
+<div id="root"></div>
+<script src="./node_modules/vue/dist/vue.js"></script>
+<script>
+    let vm = new Vue({
+        el: "#root", //绑定节点
+        methods: {
+            //vue的缺点:在methods中都将this指定到了vm对象
+            changeName(e) {
+                this.name = e.target.value;
+            }
+        },
+        data() { //提供数据
+            return {
+                isShow: false,
+                name: "zhangsan",
+                gender: "男",
+                selectId: "",
+                checkboxValue: [],
+                options: [{
+                        "name": "张三",
+                        id: "zhangsan"
+                    },
+                    {
+                        "name": "李四",
+                        id: "lisi"
+                    },
+                    {
+                        "name": "王五",
+                        id: "wangwu"
+                    },
+                ]
+            }
+        }
+    });
+</script>
+```
+
+- 自定义指令
+- vue的指令包含`v-model.trim="abc"` `v-指令名.修饰符.修饰符="变量名"`
+- 自动创建一个`focus`指令,自动获取焦点
+```html
+<body>
+    <div id="root">
+        <input type="text" v-focus="name">
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        //创建一个全局指令
+        //目的希望使用该指令实现 页面初始化后自动获取焦点
+        Vue.directive('focus', {
+            //当指令被插入到page中时会被触发
+            //参数:
+            //el:dom元素
+            //bindings,绑定的详细信息(包含绑定的变量名等)
+            //vnode:虚拟节点,当前指令的上下文 vnode.context表示当前的vm对象
+            inserted(el, bindings, vnode) {
+                console.log("el==>", el);
+                console.log("bindings==>", bindings);
+                console.log("vnode==>", vnode);
+                el.focus();
+
+
+            },
+            //当数据绑定到元素上时会被触发
+            bind(el, bindings, vnode) {
+                //当绑定的时候将
+                el.value = bindings.value;
+            },
+
+            //当解绑时被调用
+            //执行流程是 inserted => bind=>update=>unbind
+            unbind(el,bindings,vnode){
+
+            },
+            //当值被修改时会被触发
+            update(el, bindings, vnode) {
+                el.value = bindings.value;
+            }
+        })
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan"
+                }
+            }
+        })
+    </script>
+</body>
+```
+
+- 自定义一个局部指令
+```html
+//需要实现一个当我获取焦点时input下的div显示
+//当我点其他地方时div消失
+<body>
+    <div id="root">
+        <div v-click-outside>
+            <input type="text" @focus="focus()">
+            <div v-show="isShow" style="width:200px;height:200px;background-color:aqua">
+                <button>点击</button>
+            </div>
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            //声明指令(在vm对象中声明的就是局部指令)
+            directives: {
+                //少了v将下划线变成驼峰
+                "clickOutside": {
+                    bind(el, bingdings, vnode) {
+                        //在el当前元素中添加一个函数方便调用
+                        el.fn = function (e) {
+                            //如果点击的目标是外部div的一部分,则不消失
+                            
+                            if (!el.contains(e.target)) {
+                                //vnode的上下文就是当前的vm对象
+                                vnode.context.blur();
+                            }
+                        }
+                        document.addEventListener('click', el.fn)
+                    },
+                    unbind(el, bingdings, vnode) {
+                        //当我卸载组件的时候,希望删除对click的监听
+                        document.removeEventListener('click', el.fn)
+                    }
+                }
+            },
+            methods: {
+                focus() {
+                    this.isShow = true;
+                },
+                blur() {
+                    this.isShow = false;
+                }
+            }
+        })
+    </script>
+</body>
+```
+
+- `watch`和`computed`
+- `watch`是监听数据变化
+- `computed`是当值变化后执行xx操作 都是居于$watch实现的
+```javascript
+let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            //watch方法
+            watch: {
+                name(newName) {
+                    //收到数据改变后执行打印
+                    console.log("newName==>", newName);
+                }
+            }
+        })
+```
+watch的原理是居于$watch实现的
+下面的代码等同于上面的代码
+```javascript
+let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            
+        })
+        //可以在外边绑定:
+        // vm.$watch("name",function(newName){
+        //     console.log("newName==>", newName);
+        // })
+
+        //自定义函数实现watch的方法
+        function initWatch(watch) {
+            for (const key in watch) {
+                vm.$watch(key, watch[key])
+            }
+        }
+        initWatch({
+            name:function(newName){
+                console.log("newName==>", newName);
+            }
+        });
+```
+watch的第二种写法
+```javascript
+let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            //watch的第二种写法
+            watch: {
+                //传递的不是函数而是一个对象
+                name:{
+                    handler(newValue){
+                        console.log("newName==>", newName);
+                    },
+                    immediate:true,//当immediate为true时再最初赋值name的时候也会执行handler函数
+                    deep:true,//是否开启深度监控,当我监控一个对象时有用处
+                    lazy:true,//
+                }
+            }
+        })
+```
+1小时05分

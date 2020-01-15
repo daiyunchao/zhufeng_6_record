@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root">
+        <div v-click-outside>
+            <input type="text" @focus="focus()">
+            <div v-show="isShow" style="width:200px;height:200px;background-color:aqua">
+                <button>点击</button>
+            </div>
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            //声明指令(在vm对象中声明的就是局部指令)
+            directives: {
+                //少了v将下划线变成驼峰
+                "clickOutside": {
+                    bind(el, bingdings, vnode) {
+                        //在el当前元素中添加一个函数方便调用
+                        el.fn = function (e) {
+                            //如果点击的目标是外部div的一部分,则不消失
+                            
+                            if (!el.contains(e.target)) {
+                                //vnode的上下文就是当前的vm对象
+                                vnode.context.blur();
+                            }
+                        }
+                        document.addEventListener('click', el.fn)
+                    },
+                    unbind(el, bingdings, vnode) {
+                        //当我卸载组件的时候,希望删除对click的监听
+                        document.removeEventListener('click', el.fn)
+                    }
+                }
+            },
+            methods: {
+                focus() {
+                    this.isShow = true;
+                },
+                blur() {
+                    this.isShow = false;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

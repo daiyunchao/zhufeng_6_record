@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root">
+        <input type="text" v-focus="name">
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        //创建一个全局指令
+        //目的希望使用该指令实现 页面初始化后自动获取焦点
+        Vue.directive('focus', {
+            //当指令被插入到page中时会被触发
+            //参数:
+            //el:dom元素
+            //bindings,绑定的详细信息(包含绑定的变量名等)
+            //vnode:虚拟节点,当前指令的上下文 vnode.context表示当前的vm对象
+            inserted(el, bindings, vnode) {
+                console.log("el==>", el);
+                console.log("bindings==>", bindings);
+                console.log("vnode==>", vnode);
+                el.focus();
+
+
+            },
+            //当数据绑定到元素上时会被触发
+            bind(el, bindings, vnode) {
+                //当绑定的时候将
+                el.value = bindings.value;
+            },
+            //当值被修改时会被触发
+            update(el, bindings, vnode) {
+                el.value = bindings.value;
+            }
+        })
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan"
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
