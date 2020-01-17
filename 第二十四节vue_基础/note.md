@@ -739,4 +739,180 @@ let vm = new Vue({
             }
         })
 ```
-1小时05分
+
+- computed基本原理
+
+```javascript
+<script>
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+
+        });
+
+        //最基本的computed实现
+        function initComputed(key, handler) {
+
+            //在vm中添加了字段
+            Object.defineProperty(vm, key, {
+                get() {
+                    return handler();
+                }
+            })
+        };
+        initComputed('fullname', () => {
+            return vm.name + ".皮特"
+        });
+
+        console.log(vm.fullname);
+    </script>
+```
+
+- 在vm中使用`computed`
+```javascript
+let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    isShow: false,
+                }
+            },
+            computed:{
+                fullname(){
+                    return this.name+".皮特"
+                }
+            }
+        });
+
+    //最基本的computed实现
+    console.log(vm.fullname);
+```
+- watch和computed的区别
+1. 都是监听数据的
+2. watch是每次值改变回调函数就会被执行
+3. conputed会在vm对象中添加一个缓存属性,当依赖的值改变下次再获取该属性时就重新执行回调获取新的值 它的原理是Object.defineProperty去创建了一个vm的属性,因为有缓存的存在,性能会比methods写的高一些
+
+- 使用`computed`实现一个全选功能的小例子,使用到了`computed`的`set`方法
+```javascript
+ let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    fruits: [{
+                            name: "苹果",
+                            isChecked: false
+                        },
+                        {
+                            name: "香蕉",
+                            isChecked: true
+                        },
+                        {
+                            name: "西瓜",
+                            isChecked: false
+                        }
+                    ],
+                }
+            },
+            //computed和watch都是new了一个$watch
+            //computed有缓存,只要他的依赖不变值就不会重复执行
+            computed: {
+                allIsChecked: {
+                    //get方法,当获取值的时候使用
+                    get() {
+                        return this.fruits.every(item => item.isChecked)
+                    },
+                    //set方法,当我双向绑定设置该值的时候使用到
+                    set(value) {
+                        this.fruits.forEach(item => {
+                            item.isChecked = value;
+                        });
+                    }
+                }
+            }
+        });
+
+```
+
+- vue动画,能触发vue中动画的指令有`v-if v-show v-for(当数量有改变) 路由改变`
+
+- 使用vue动画实现的一个现实隐藏小例子
+```html
+<style>
+        .content {
+            width: 200px;
+            height: 200px;
+            background: black;
+        }
+
+
+        /* 写动画的样式 */
+        .v-enter {
+            /* 开始动画前 */
+            background: white;
+        }
+
+        .v-enter-active {
+            /* 动画执行过程中 */
+            background: wheat;
+            transition: all 2s linear;
+        }
+
+        .v-enter-to {
+            /* 动画执行完 */
+            background: black;
+        }
+
+        .v-leave {
+            /* 准备离开 */
+            background: black;
+        }
+
+        .v-leave-active {
+            /* 开始离开 */
+            background: wheat;
+            transition: all 2s linear;
+        }
+
+        .v-leave-to {
+            /* 离开结束 */
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root">
+        <div>
+            <button @click="changeShowStatus()">点击</button>
+            <!-- 将需要动画的内容先使用transition包裹下 -->
+            <transition>
+                <div class="content" v-show="isShow"></div>
+            </transition>
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        var vm = new Vue({
+            el: "#root",
+            data: {
+                isShow: false
+            },
+            methods: {
+                changeShowStatus() {
+                    this.isShow = !this.isShow;
+                }
+            }
+        })
+    </script>
+</body>
+
+```
+
+- 动画组 `transition-group`

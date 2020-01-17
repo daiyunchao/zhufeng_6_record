@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root">
+        <input type="checkbox" v-model="allIsChecked">全选
+        <template v-for="(fruit,index) in fruits">
+            <input type="checkbox" v-model="fruit.isChecked">{{fruit.name}}
+        </template>
+    </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        let vm = new Vue({
+            el: "#root",
+            data() {
+                return {
+                    name: "zhangsan",
+                    fruits: [{
+                            name: "苹果",
+                            isChecked: false
+                        },
+                        {
+                            name: "香蕉",
+                            isChecked: true
+                        },
+                        {
+                            name: "西瓜",
+                            isChecked: false
+                        }
+                    ],
+                }
+            },
+            //computed和watch都是new了一个$watch
+            //computed有缓存,只要他的依赖不变值就不会重复执行
+            computed: {
+                allIsChecked: {
+                    get() {
+                        return this.fruits.every(item => item.isChecked)
+                    },
+                    set(value) {
+                        this.fruits.forEach(item => {
+                            item.isChecked = value;
+                        });
+                    }
+                }
+            }
+
+        });
+
+
+        console.log(vm.fullname);
+    </script>
+</body>
+
+</html>

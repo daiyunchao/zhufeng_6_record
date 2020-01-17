@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>导航动画</title>
+</head>
+<style>
+    .nav_btn {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50%;
+        background: red;
+        position: relative;
+        margin: 0 auto;
+        margin-top: 200px;
+    }
+
+    .nv_item_1 {
+        transform: translate(-100px, 0);
+        border-radius: 50%;
+    }
+
+    .nv_item_2 {
+        transform: translate(-50px, -50px);
+        border-radius: 50%;
+    }
+
+    .nv_item_3 {
+        transform: translate(0px, -100px);
+        border-radius: 50%;
+    }
+
+    .nv_item_4 {
+        transform: translate(50px, -50px);
+        border-radius: 50%;
+    }
+
+    .nv_item_5 {
+        transform: translate(100px, 0);
+        border-radius: 50%;
+    }
+
+    .nav_item {
+        position: absolute;
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        background: blue;
+        text-align: center;
+    }
+
+    .nav_item .v-enter {
+        transform: translate(0, 0);
+    }
+
+    .nav_item .v-enter-active {
+        transition: all 1.5s linear;
+    }
+</style>
+
+<body>
+    <div id="app">
+        <div class="nav_btn" @click="change()">
+            
+            <transition-group>
+                <div :class="`nav_item nv_item_${index+1}`" v-show="isShow" v-for="(item,index) in list">{{item}}</div>
+            </transition-group>
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        var vm = new Vue({
+            el: "#app",
+            data: {
+                isShow: false,
+                list: ["A", "B", "C", "D", "E"]
+            },
+            methods: {
+                change() {
+                    console.log("this is methods ...");
+                    this.isShow = !this.isShow
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

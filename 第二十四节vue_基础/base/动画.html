@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        .content {
+            width: 200px;
+            height: 200px;
+            background: black;
+        }
+
+
+        /* 写动画的样式 */
+        .v-enter {
+            /* 开始动画前 */
+            background: white;
+        }
+
+        .v-enter-active {
+            /* 动画执行过程中 */
+            background: wheat;
+            transition: all 2s linear;
+        }
+
+        .v-enter-to {
+            /* 动画执行完 */
+            background: black;
+        }
+
+        .v-leave {
+            /* 准备离开 */
+            background: black;
+        }
+
+        .v-leave-active {
+            /* 开始离开 */
+            background: wheat;
+            transition: all 2s linear;
+        }
+
+        .v-leave-to {
+            /* 离开结束 */
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root">
+        <div>
+            <button @click="changeShowStatus()">点击</button>
+            <!-- 将需要动画的内容先使用transition包裹下 -->
+            <transition>
+                <div class="content" v-show="isShow"></div>
+            </transition>
+        </div>
+    </div>
+    <script src="./node_modules/vue/dist/vue.min.js"></script>
+    <script>
+        var vm = new Vue({
+            el: "#root",
+            data: {
+                isShow: false
+            },
+            methods: {
+                changeShowStatus() {
+                    this.isShow = !this.isShow;
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
