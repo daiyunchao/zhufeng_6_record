@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root"></div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script>
+        var vm = new Vue({
+            //创建前执行,一般可以在该函数中为vm添加一些特点属性
+            //但该方法不能获取到vm的data这类的值,无法改变这些值
+            beforeCreate() {
+                //创建前,不能拿到data/methods等等
+
+                //this这个this就是vm实例
+                console.log(this, "beforeCreate");
+
+            },
+
+            //实例创建完成执行,
+            //当执行到了该方法,说明vm这个实例已经产生了,数据已经被劫持了(添加了get set方法,能监控了) 同时computed属性也添加到了该实例中
+            //不能获取到真实的dom元素,所以不能操作dom
+            created() {
+                //这个时候的this中就有data属性并且已赋值了
+                console.log("created");
+            },
+
+            //该方法在beforeMount会被调用
+            render() {
+
+                console.log("render");
+
+            },
+
+            //挂载之前,该方法会调用render方法或是template属性(如果没有render方法,vue会将template转换成render方法)
+            beforeMount() {
+                console.log("beforeMount");
+            },
+
+            //当前组件挂载完成,组件已经挂载到了html中
+            //在该函数中就能拿到真实的dom元素
+            //该方法调用结束后,挂载的流程就完成了
+            mounted() {
+
+            },
+
+            //数据(data)更新了,视图更新之前被执行
+            //如果视图没变(该数据没显示到页面上),该方法是不会执行的
+            beforeUpdate() {
+
+            },
+
+            //更新完成,尽量不要在该函数中更新数据,更新数据可能会导致死循环
+            updated() {
+
+            },
+
+            //销毁前,当路由改变或是手动销毁的时候会被调用到
+            //手动调用的方法:vm.destory()
+            beforeDestory() {
+                //
+            },
+
+            //销毁完成
+            destoryed() {
+
+            }
+
+        });
+
+        //手动销毁监听,该监听会移除监听事件,让数据变化不会导致ui的变化(但并不会将页面上的内容移除掉)
+        vm.destory();
+    </script>
+</body>
+
+</html>

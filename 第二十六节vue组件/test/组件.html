@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="root">
+        <My :q="q"></My>
+    </div>
+    <script src="./node_modules/vue/dist/vue.js"></script>
+    <script>
+        let component = {
+            template: `<div>this is something{{q}}</div>`,
+            props:["q"]
+        }
+
+        var vm = new Vue({
+            el: "#root",
+            data(){
+                return {
+                    "q":100
+                }
+            },
+            //将component注册到vm这个vue的实例中,
+            //那么该组件只能在vm这个实例的template中使用(该vm的template就是id=root的div)
+            components: {
+                "My": component
+            }
+        });
+    </script>
+</body>
+
+</html>
