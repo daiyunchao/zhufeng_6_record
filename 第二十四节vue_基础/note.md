@@ -389,7 +389,7 @@ data.d = [1,2,3]
     <template v-if="isShow">
         <span>if{{name}}</span>
     </template>
-    <template v-else="!isShow">
+    <template v-else>
         <span>else{{name}}</span>
     </template>
    
